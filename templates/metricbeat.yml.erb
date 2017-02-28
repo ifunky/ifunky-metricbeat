@@ -1,0 +1,65 @@
+<%-
+  def get_array(ar)
+    newarray = %w{ar.join(',')}
+    return_val = newarray
+  end
+-%>
+
+# ------------------------------------------------------------------
+# MODULES
+# ------------------------------------------------------------------
+metricbeat.modules:
+<%- @modules.each do |modulename,options| -%>
+- module: <%= modulename %>
+  metricsets: [<% options["metricsets"].each do |metricset| -%>"<%=metricset%>",<% end -%>]
+  enabled: <%= options["enabled"] -%>
+  period: <%= options["period"] -%>
+  <%- if options['hosts'] != nil -%>
+  hosts: [<% options["hosts"].each do |host| -%>"<%=host%>",<% end -%>]
+  <%- end -%>
+  <%- if options['fields'] != nil -%>
+  fields:
+  <%- options['fields'].each_pair do |key, value| -%>
+  <%= key %>: <%= value -%>
+  <%- end -%>
+  <%- end -%>
+  <%- if options['tags'] != nil -%>
+  tags: [<% @tags.each do |tag| -%>"<%=tag%>",<% end -%>]
+  <%- end -%>
+<%- end -%>
+
+# ------------------------------------------------------------------
+# GENERAL SETTINGS
+# ------------------------------------------------------------------
+<%- if !@beat_name.nil? -%>
+name: <%= @beat_name -%>
+<%- end -%>
+
+<%- if @tags.length > 0 -%>
+tags: [<% @tags.each do |tag| -%>"<%=tag%>",<% end -%>]
+<%- end -%>
+
+<%- if @fields.length > 0 -%>
+  fields:
+    <%- @fields.each_pair do |key, value| -%>
+      <%= key %>: <%= value -%>
+<%- end -%>
+<%- end -%>
+fields_under_root: <%= @fields_under_root %>
+
+# ------------------------------------------------------------------
+# OUTPUTS
+# ------------------------------------------------------------------
+# ELASTIC SEARCH
+<%- if @outputs['elasticsearch'] != nil -%>
+output.elasticsearch:
+  <%- unless @outputs['elasticsearch']['enabled'] == nil -%>
+  enabled: <%= @outputs['elasticsearch']['enabled'] %>
+<% end -%>
+  hosts: [<% @outputs['elasticsearch']['hosts'].each do |host| -%>"<%=host%>",<% end -%>]
+<%- unless @outputs['elasticsearch']['compression_level'] == nil -%>
+  compression_level: <%= @outputs['elasticsearch']['compression_level'] %>
+<% end -%>
+
+<% end -%>
+# ------------------------------------------------------------------
